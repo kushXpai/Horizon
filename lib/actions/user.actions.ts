@@ -26,6 +26,13 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
       [Query.equal('userId', [userId])]
     )
 
+    // console.log("userId:", userId);
+    // console.log("listDocuments response:", user);
+
+    if (!user.documents.length) {
+      throw new Error(`No user found with userId: ${userId}`);
+    }
+
     return parseStringify(user.documents[0]);
   } catch (error) {
     console.log(error)
@@ -44,7 +51,11 @@ export const signIn = async ({ email, password }: signInProps) => {
       secure: true,
     });
 
+    if (!session.userId) throw new Error("Session userId is undefined");
+
     const user = await getUserInfo({ userId: session.userId }) 
+
+    if (!user) throw new Error("User information could not be retrieved.");
 
     return parseStringify(user);
   } catch (error) {
@@ -89,6 +100,8 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
         dwollaCustomerUrl
       }
     )
+
+    if (!newUser) throw new Error("Error creating user document");
 
     const session = await account.createEmailPasswordSession(email, password);
 
